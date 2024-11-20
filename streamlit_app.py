@@ -1,31 +1,57 @@
-# Streamlitライブラリをインポート
 import streamlit as st
+import pandas as pd
+import plotly.express as px
 
-# ページ設定（タブに表示されるタイトル、表示幅）
-st.set_page_config(page_title="タイトル", layout="wide")
+st.set_page_config(page_title="度数分布表とヒストグラム作成アプリ", layout="wide")
 
-# タイトルを設定
-st.title('Streamlitのサンプルアプリ')
+st.title("度数分布表とヒストグラム作成アプリ")
+st.caption("Created by Dit-Lab.(Daiki Ito)")
+st.write("アップロードしたExcelやCSVデータから、度数分布表とヒストグラムを作成します。")
+st.write("")
 
-# テキスト入力ボックスを作成し、ユーザーからの入力を受け取る
-user_input = st.text_input('あなたの名前を入力してください')
+# ファイルアップローダー
+uploaded_file = st.file_uploader('ファイルをアップロードしてください (Excel or CSV)', type=['xlsx', 'csv'])
 
-# ボタンを作成し、クリックされたらメッセージを表示
-if st.button('挨拶する'):
-    if user_input:  # 名前が入力されているかチェック
-        st.success(f'🌟 こんにちは、{user_input}さん! 🌟')  # メッセージをハイライト
+# デモデータを使うかどうかのチェックボックス
+use_demo_data = st.checkbox('デモデータを使用')
+
+# データフレームの作成
+df = None
+if use_demo_data:
+    df = pd.read_excel('hist_data.xlsx', sheet_name=0)
+    st.write("デモデータを使用しています。")
+    st.write(df.head())
+elif uploaded_file is not None:
+    if uploaded_file.type == 'text/csv':
+        df = pd.read_csv(uploaded_file)
+        st.write(df.head())
     else:
-        st.error('名前を入力してください。')  # エラーメッセージを表示
+        df = pd.read_excel(uploaded_file)
+        st.write(df.head())
+else:
+    st.write('ファイルをアップロードするか、デモデータを使用してください。')
 
-# スライダーを作成し、値を選択
-number = st.slider('好きな数字（10進数）を選んでください', 0, 100)
-
-# 補足メッセージ
-st.caption("十字キー（左右）でも調整できます。")
-
-# 選択した数字を表示
-st.write(f'あなたが選んだ数字は「{number}」です。')
-
-# 選択した数値を2進数に変換
-binary_representation = bin(number)[2:]  # 'bin'関数で2進数に変換し、先頭の'0b'を取り除く
-st.info(f'🔢 10進数の「{number}」を2進数で表現すると「{binary_representation}」になります。 🔢')  # 2進数の表示をハイライト
+if df is not None:
+    # 数値変数のリストを取得
+    numerical_cols = df.select_dtypes(include=['int64', 'float64']).columns.tolist()
+    
+    if numerical_cols:
+        st.subheader('数値変数の選択')
+        selected_col = st.selectbox('度数分布表とヒストグラムを作成する数値変数を選択してください', numerical_cols)
+        
+        # 度数分布表の作成
+        st.subheader(f'度数分布表：{selected_col}')
+        # ビンの数を選択
+        bin_num = st.slider('ビンの数を選択してください', min_value=5, max_value=50, value=10)
+        counts, bins = pd.cut(df[selected_col], bins=bin_num, retbins=True)
+        freq_table = counts.value_counts().sort_index()
+        freq_table = freq_table.reset_index()
+        freq_table.columns = ['区間', '度数']
+        st.write(freq_table)
+        
+        # ヒストグラムの作成
+        st.subheader(f'ヒストグラム：{selected_col}')
+        fig = px.histogram(df, x=selected_col, nbins=bin_num, title=f'ヒストグラム：{selected_col}')
+        st.plotly_chart(fig)
+    else:
+        st.write('数値変数が含まれていません。')
