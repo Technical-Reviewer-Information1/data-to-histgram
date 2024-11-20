@@ -65,6 +65,10 @@ if df is not None:
         freq_table = counts.value_counts().sort_index()
         freq_table = freq_table.reset_index()
         freq_table.columns = ['区間', '度数']
+        
+        # インデックスを1から開始するように調整
+        freq_table.index = range(1, len(freq_table) + 1)
+        
         st.write(freq_table)
         
         # ヒストグラムの作成
