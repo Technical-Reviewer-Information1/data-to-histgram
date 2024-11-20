@@ -41,8 +41,8 @@ if df is not None:
         
         # 度数分布表の作成
         st.subheader(f'度数分布表：{selected_col}')
-        # ビンの数を選択
-        bin_num = st.slider('ビンの数を選択してください', min_value=5, max_value=50, value=10)
+        # 階級の数を選択
+        bin_num = st.slider('階級の数を選択してください', min_value=5, max_value=50, value=10)
         counts, bins = pd.cut(df[selected_col], bins=bin_num, retbins=True)
         freq_table = counts.value_counts().sort_index()
         freq_table = freq_table.reset_index()
