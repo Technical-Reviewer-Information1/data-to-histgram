@@ -3,10 +3,11 @@ import pandas as pd
 import plotly.express as px
 import math
 
-st.set_page_config(page_title="度数分布表とヒストグラム作成アプリ", layout="wide")
+st.set_page_config(page_title="度数分布表とヒストグラム", layout="wide")
 
-st.title("度数分布表とヒストグラム作成アプリ")
+st.title("度数分布表とヒストグラム（pp.19-20）")
 st.caption("Created by Dit-Lab.(Daiki Ito)")
+st.caption("Supported by Tomoaki ATSUMI")
 st.write("アップロードしたExcelやCSVデータから、度数分布表とヒストグラムを作成します。")
 st.write("")
 
