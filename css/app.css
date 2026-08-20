@@ -12,3 +12,7 @@ input[type=range]{width:100%; accent-color:var(--accent); height:34px}
 #freqTable td:first-child{font-family:var(--mono)}
 #freqTable tfoot td{border-top:1.5px solid var(--ink); font-weight:700}
 .why{font-size:.85rem; color:var(--ink-2); line-height:1.85}
+.j-stmt{font-size:1rem; font-weight:700; line-height:1.9; text-align:left}
+#freqTable tr.hi td{background:var(--warn-bg); font-weight:700}
+#freqTable tr.hi2 td{background:var(--accent-w)}
+#myTable td{font-family:var(--mono)}
