@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>度数分布表とヒストグラム｜情報Ⅰ共通テスト対策問題集</title>
+<meta name="description" content="同じデータでも、階級の幅を変えるとヒストグラムの形は変わります。自分でデータを階級に振り分けながら、度数分布表のしくみを確かめましょう。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 fill=%22%2315181c%22/%3E%3Ctext x=%2216%22 y=%2222%22 font-size=%2218%22 font-family=%22monospace%22 fill=%22%23fff%22 text-anchor=%22middle%22%3E01%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="inner">
+    <span class="eyebrow">第 1 章　データの活用　1-4</span>
+    <h1>度数分布表とヒストグラム（pp.19-20）</h1>
+    <p class="lead">同じデータでも、階級の幅を変えるとヒストグラムの形は変わります。自分でデータを階級に振り分けながら、度数分布表のしくみを確かめましょう。</p>
+    <p class="credit">Created by Dit-Lab.(Daiki ITO)　/　Supported by Tomoaki ATSUMI</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="step" id="step1">
+    <h2><span class="no">STEP 1</span>自分で階級に振り分ける</h2>
+    <p class="desc">40人分のテストの点数です。値をひとつずつ、正しい階級のボタンに入れてください。<strong>階級の境目の扱い</strong>がポイントです。</p>
+
+    <div class="panel">
+      <div class="qhead">
+        <span class="badge" id="sortProgress">0 / 0</span>
+        <span class="badge">正解 <span class="score" id="sortScore">0</span></span>
+      </div>
+      <div class="card-q">
+        <div style="font-size:.82rem;color:var(--ink-2)">この生徒の点数</div>
+        <div class="q-var" id="sortValue">—</div>
+      </div>
+      <div class="binrow" id="bins"></div>
+      <div class="note" id="sortFb" hidden style="margin-top:12px"></div>
+      <div class="btn-row" style="margin-top:12px">
+        <button class="btn ghost" id="sortReset">最初から</button>
+        <button class="btn" id="sortSkip">残りをまとめて振り分ける</button>
+      </div>
+      <div class="note info" style="margin-top:12px">
+        階級「60以上70未満」は <span class="mono">60 ≦ x &lt; 70</span> の意味。<strong>70点はこの階級には入らず、次の階級に入ります。</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="step" id="step2">
+    <h2><span class="no">STEP 2</span>度数分布表を読む</h2>
+    <p class="desc">階級値・相対度数・累積度数は、共通テストでそのまま計算させられます。</p>
+    <div class="tbl-scroll">
+      <table class="tbl" id="freqTable">
+        <thead><tr><th>階級（点）</th><th>階級値</th><th>度数（人）</th><th>相対度数</th><th>累積度数</th><th>累積相対度数</th></tr></thead>
+        <tbody></tbody>
+        <tfoot></tfoot>
+      </table>
+    </div>
+    <div class="note info" style="margin-top:12px">
+      階級値＝<span class="mono">(階級の下端＋上端)÷2</span>　／　相対度数＝<span class="mono">その階級の度数÷全体の度数</span>　／　累積度数＝<span class="mono">その階級までの度数の合計</span>
+    </div>
+  </section>
+
+  <section class="step" id="step3">
+    <h2><span class="no">STEP 3</span>階級の幅を変えるとどうなるか</h2>
+    <p class="desc">データはまったく同じです。階級の幅だけを変えて、山の形がどう変わるか見てください。</p>
+    <div class="panel">
+      <label class="fld" for="binWidth">階級の幅：<span class="mono" id="bwVal">10</span> 点（階級の数 <span class="mono" id="bcVal">6</span>）</label>
+      <input type="range" id="binWidth" min="2" max="25" step="1" value="10">
+      <div id="histChart" style="margin-top:10px"></div>
+      <div class="note" id="bwNote" style="margin-top:12px"></div>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <h3>代表値の位置</h3>
+      <div class="metrics">
+        <div class="metric"><div class="k">平均値</div><div class="v" id="mMean">—</div><div class="s">点</div></div>
+        <div class="metric"><div class="k">中央値</div><div class="v" id="mMed">—</div><div class="s">点</div></div>
+        <div class="metric"><div class="k">最頻値の階級</div><div class="v" id="mMode">—</div><div class="s">点</div></div>
+        <div class="metric"><div class="k">データの個数</div><div class="v" id="mN">—</div><div class="s">人</div></div>
+      </div>
+      <p class="why" style="margin-top:12px">最頻値は<strong>階級の幅を変えると変わります</strong>が、平均値と中央値はもとのデータから決まるので変わりません。ここは出題されやすいポイントです。</p>
+    </div>
+  </section>
+
+  <section class="step">
+    <h2><span class="no">まとめ</span>ヒストグラムのポイント</h2>
+    <ul style="margin:0;padding-left:1.2em;color:var(--ink-2);font-size:.92rem;line-height:2.05">
+      <li>階級は<strong>「◯以上△未満」</strong>。境目の値は上の階級に入ります。</li>
+      <li>階級値は階級の<strong>まん中の値</strong>。度数分布表から平均を出すときに使います。</li>
+      <li>棒グラフとちがい、ヒストグラムの棒は<strong>すき間をあけずに</strong>並べます（横軸が連続した数だから）。</li>
+      <li>階級の幅を変えると<strong>形も最頻値も変わります</strong>。幅が狭すぎるとガタガタ、広すぎると特徴が消えます。</li>
+    </ul>
+  </section>
+
+</main>
+
+<footer class="app-footer">
+  情報Ⅰ 共通テスト対策問題集（技術評論社）連動Webアプリ　/　Created by Dit-Lab.(Daiki ITO)　/　Supported by Tomoaki ATSUMI
+</footer>
+
+<script src="js/chart.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
