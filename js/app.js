@@ -223,37 +223,75 @@
   }
 
   /* ---------- STEP5 自分のデータ ---------- */
+  let grid = null, gridHeader = [];
+
+  function refreshCols(rows, header) {
+    gridHeader = header;
+    const nums = grid ? grid.numericColumns() : [];
+    const sel = $('colSel');
+    const prev = sel.value;
+    sel.innerHTML = header.map((h, j) =>
+      '<option value="' + j + '"' + (nums.indexOf(j) < 0 ? ' disabled' : '') + '>' + h +
+      (nums.indexOf(j) < 0 ? '（数値でない列）' : '') + '</option>').join('');
+    if (prev !== '' && sel.querySelector('option[value="' + prev + '"]:not([disabled])')) sel.value = prev;
+    else if (nums.length) sel.value = nums[0];
+    calcMine();
+  }
+
+  function autoWidth(vals) {
+    const st = stat(vals);
+    const range = Math.max(...vals) - Math.min(...vals);
+    if (range === 0) return 1;
+    const k = Math.max(4, Math.min(12, Math.round(Math.sqrt(vals.length))));   // 階級の数の目安
+    const raw = range / k;
+    const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    const n = raw / mag;
+    return +((n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * mag).toFixed(6);
+  }
+
   function calcMine() {
-    const vals = T.numbers($('pasteBox').value);
+    if (!grid) return;
+    const j = +$('colSel').value;
+    const vals = grid.column(j);
     const n = $('myNote');
     if (vals.length < 3) {
       n.hidden = false; n.className = 'note ng';
-      n.textContent = '数値が読み取れませんでした。3つ以上の数値を入力してください。';
-      $('myTable').innerHTML = ''; $('myChart').innerHTML = ''; $('myTools').innerHTML = '';
+      n.textContent = '数値が3つ以上必要です。表に数値を入力するか、ファイルを読み込んでください。';
+      $('myTable').innerHTML = ''; $('myChart').innerHTML = ''; $('myTools').innerHTML = ''; $('myStats').innerHTML = '';
       return;
     }
-    const w = Math.max(0.0001, parseFloat($('myWidth').value) || 1);
+    let w = parseFloat($('myWidth').value);
+    if (!Number.isFinite(w) || w <= 0) { w = autoWidth(vals); $('myWidth').value = w; }
     const lo = Math.floor(Math.min(...vals) / w) * w;
-    const hi = Math.ceil(Math.max(...vals) / w) * w;
+    const hi = Math.max(lo + w, Math.ceil(Math.max(...vals) / w) * w);
     const { c, edges } = counts(w, lo, hi, vals);
     const st = stat(vals);
     let cum = 0;
-    $('myTable').innerHTML = '<thead><tr><th>階級</th><th>階級値</th><th>度数</th><th>相対度数</th><th>累積度数</th></tr></thead><tbody>' +
+    const round = v => Math.round(v * 1000) / 1000;
+    $('myTable').innerHTML = '<thead><tr><th>階級</th><th>階級値</th><th>度数</th><th>相対度数</th><th>累積度数</th><th>累積相対度数</th></tr></thead><tbody>' +
       c.map((k, i) => { cum += k;
-        return '<tr><td>' + edges[i] + '以上 ' + edges[i + 1] + '未満</td><td>' + ((edges[i] + edges[i + 1]) / 2).toFixed(2) +
-          '</td><td>' + k + '</td><td>' + (k / vals.length).toFixed(3) + '</td><td>' + cum + '</td></tr>'; }).join('') +
-      '</tbody><tfoot><tr><td>合計</td><td>—</td><td>' + vals.length + '</td><td>1.000</td><td>' + vals.length + '</td></tr></tfoot>';
-    C.hist($('myChart'), { W: 620, H: 300, counts: c, edges, unit: '度数' });
+        return '<tr><td>' + round(edges[i]) + '以上 ' + round(edges[i + 1]) + '未満</td><td>' +
+          round((edges[i] + edges[i + 1]) / 2) + '</td><td>' + k + '</td><td>' + (k / vals.length).toFixed(3) +
+          '</td><td>' + cum + '</td><td>' + (cum / vals.length).toFixed(3) + '</td></tr>'; }).join('') +
+      '</tbody><tfoot><tr><td>合計</td><td>—</td><td>' + vals.length + '</td><td>1.000</td><td>' + vals.length + '</td><td>1.000</td></tr></tfoot>';
+    C.hist($('myChart'), { W: 640, H: 310, counts: c, edges: edges.map(round), unit: '度数' });
     const maxI = c.indexOf(Math.max(...c));
+    let approx = 0; c.forEach((k, i) => approx += (edges[i] + edges[i + 1]) / 2 * k);
+    $('myStats').innerHTML =
+      '<div class="metric"><div class="k">個数</div><div class="v">' + vals.length + '</div></div>' +
+      '<div class="metric"><div class="k">平均値</div><div class="v">' + st.mean.toFixed(2) + '</div></div>' +
+      '<div class="metric"><div class="k">中央値</div><div class="v">' + st.med.toFixed(2) + '</div></div>' +
+      '<div class="metric"><div class="k">最小</div><div class="v">' + Math.min(...vals) + '</div></div>' +
+      '<div class="metric"><div class="k">最大</div><div class="v">' + Math.max(...vals) + '</div></div>';
     n.hidden = false; n.className = 'note info';
-    n.innerHTML = 'データ ' + vals.length + ' 個、平均 <strong>' + st.mean.toFixed(2) + '</strong>、中央値 <strong>' +
-      st.med.toFixed(2) + '</strong>、最頻値の階級は <strong>' + edges[maxI] + '以上' + edges[maxI + 1] +
-      '未満</strong>（' + c[maxI] + ' 個）。階級の幅を変えて、形がどう変わるか確かめてみましょう。';
+    n.innerHTML = '列「<strong>' + (gridHeader[j] || '') + '</strong>」の ' + vals.length + ' 個を集計しました。' +
+      '最頻値の階級は <strong>' + round(edges[maxI]) + '以上' + round(edges[maxI + 1]) + '未満</strong>（' + c[maxI] + ' 個）。' +
+      '階級値から求めた平均は ' + (approx / vals.length).toFixed(2) + ' で、実際の平均 ' + st.mean.toFixed(2) + ' とわずかにずれます。';
     $('myTools').innerHTML = '';
     $('myTools').appendChild(T.saveButton(() => $('myChart').querySelector('svg'), 'ヒストグラム'));
     const sh = document.createElement('button');
     sh.className = 'btn sm ghost'; sh.textContent = 'このデータのURLを作る';
-    sh.addEventListener('click', () => T.share({ t: $('pasteBox').value, w: $('myWidth').value }, sh));
+    sh.addEventListener('click', () => T.share({ d: grid.getRaw(), h: grid.getHeader(), w: $('myWidth').value, j: j }, sh));
     $('myTools').appendChild(sh);
     const pr = document.createElement('button');
     pr.className = 'btn sm ghost'; pr.textContent = '印刷する';
@@ -274,10 +312,29 @@
     $('jReset').addEventListener('click', startJ);
     $('calcMine').addEventListener('click', calcMine);
     $('myWidth').addEventListener('change', calcMine);
-    $('clearMine').addEventListener('click', () => { $('pasteBox').value = ''; $('myTable').innerHTML = ''; $('myChart').innerHTML = ''; $('myNote').hidden = true; $('myTools').innerHTML = ''; });
+    $('colSel').addEventListener('change', calcMine);
+    $('autoWidth').addEventListener('click', () => {
+      const vals = grid.column(+$('colSel').value);
+      if (vals.length >= 3) { $('myWidth').value = autoWidth(vals); calcMine(); }
+    });
+
     const shared = T.readShared();
-    if (shared && shared.t) { $('pasteBox').value = shared.t; if (shared.w) $('myWidth').value = shared.w; }
-    startSort(); drawTable(); drawHist(); startJ(); calcMine();
+    const initData = (shared && shared.d) ? shared.d : [
+      ['1番', '6.5'], ['2番', '7.0'], ['3番', '7.2'], ['4番', '6.8'], ['5番', '5.5'],
+      ['6番', '8.0'], ['7番', '7.5'], ['8番', '6.0'], ['9番', '7.8'], ['10番', '6.2'],
+      ['11番', '7.0'], ['12番', '6.5'], ['13番', '5.8'], ['14番', '7.4'], ['15番', '8.2'],
+      ['16番', '6.9'], ['17番', '7.1'], ['18番', '6.4'], ['19番', '5.9'], ['20番', '7.6']
+    ];
+    const initHeader = (shared && shared.h) ? shared.h : ['生徒', '睡眠時間(時間)'];
+    grid = window.DataInput.create($('dataInput'), {
+      header: initHeader, data: initData, minRows: 3,
+      onChange: refreshCols
+    });
+    if (shared && shared.w) $('myWidth').value = shared.w;
+    window.Terms.glossary($('glossBox'), ['階級', '階級値', '度数', '相対度数', '累積度数', 'ヒストグラム', '平均値', '中央値', '最頻値', '代表値']);
+    startSort(); drawTable(); drawHist(); startJ();
+    refreshCols(grid.getData(), grid.getHeader());
+    window.Terms.attach();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
