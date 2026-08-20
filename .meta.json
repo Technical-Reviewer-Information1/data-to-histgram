@@ -4,9 +4,10 @@
  "pp": "pp.19-20",
  "lead": "度数分布表からは平均値も中央値も「およそ」でしか出せません。何が読み取れて何が読み取れないのかを、表と図を行き来しながら確かめましょう。",
  "scripts": [
+  "tools.js",
   "chart.js",
-  "grid.js",
   "xlsx.js",
+  "grid.js",
   "datainput.js",
   "terms.js",
   "app.js"

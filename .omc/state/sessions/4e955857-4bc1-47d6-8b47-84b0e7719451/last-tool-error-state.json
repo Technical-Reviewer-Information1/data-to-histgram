@@ -1,7 +1,0 @@
-{
-  "tool_name": "mcp__playwright__browser_find",
-  "tool_input_preview": "{\"query\":\"ファイルを読み込む file input\"}",
-  "error": "### Error\nProvide either \"text\" or \"regex\" to search for.",
-  "timestamp": "2026-08-20T04:26:38.331Z",
-  "retry_count": 1
-}
