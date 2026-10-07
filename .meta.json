@@ -10,6 +10,7 @@
   "grid.js",
   "datainput.js",
   "terms.js",
+  "predict.js",
   "app.js"
  ],
  "use": {

@@ -336,5 +336,19 @@
     refreshCols(grid.getData(), grid.getHeader());
     window.Terms.attach();
   }
+  if (window.Predict) Predict.make('pdH', {
+    q: '<strong>同じデータ</strong>でも、階級の幅を変えるとヒストグラムはどうなるでしょう？',
+    type: 'pick',
+    ch: ['形は変わらない', '山の数や形が変わって見えることがある', '必ず山が1つになる', 'データの個数（度数の合計）が変わる'],
+    answer: function () { return 1; },
+    show: function () {
+      return '<strong>度数の合計は変わりません</strong>（データの個数は同じ）。変わるのは<strong>見え方</strong>です。' +
+             '幅を広くすると山はなめらかに、狭くするとデコボコに見えます。';
+    },
+    why: '同じデータから<strong>ちがう印象のグラフを作れてしまう</strong>ということです。' +
+         'だからヒストグラムを読むときは、階級の幅がいくつかを必ず確かめます。' +
+         '自分が作るときも、幅を変えて何通りか見比べてから決めるのが正しいやり方です。'
+  });
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
